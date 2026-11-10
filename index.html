@@ -3,468 +3,234 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Leon | Personal Website</title>
-    <meta name="description" content="Leon's personal website, featuring bio, skills, projects, and contact information." />
-    <style>
-        :root {
-            --bg: #0f172a;
-            --card: rgba(255, 255, 255, 0.08);
-            --card-border: rgba(255, 255, 255, 0.12);
-            --text: #e2e8f0;
-            --muted: #94a3b8;
-            --accent: #38bdf8;
-            --accent-2: #a78bfa;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            min-height: 100%;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background:
-                radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 35%),
-                radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.18), transparent 30%),
-                var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-        }
-
-        .container {
-            width: min(1100px, calc(100% - 32px));
-            margin: 0 auto;
-            padding: 48px 0 64px;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 16px;
-        }
-
-        .lang-switch {
-            display: inline-flex;
-            gap: 8px;
-            padding: 6px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(14px);
-        }
-
-        .lang-btn {
-            border: 0;
-            background: transparent;
-            color: var(--muted);
-            padding: 8px 14px;
-            border-radius: 999px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .lang-btn.active {
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            color: #fff;
-        }
-
-        .hero {
-            display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 24px;
-            align-items: center;
-            padding: 36px;
-            border: 1px solid var(--card-border);
-            background: var(--card);
-            backdrop-filter: blur(14px);
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 8px 14px;
-            border-radius: 999px;
-            background: rgba(56, 189, 248, 0.14);
-            color: #7dd3fc;
-            font-size: 14px;
-            margin-bottom: 18px;
-        }
-
-        h1 {
-            font-size: clamp(2.2rem, 6vw, 4.2rem);
-            line-height: 1.1;
-            margin: 0 0 16px;
-        }
-
-        .subtitle {
-            color: var(--muted);
-            font-size: 1.05rem;
-            margin: 0 0 24px;
-            max-width: 58ch;
-        }
-
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 18px;
-            border-radius: 14px;
-            text-decoration: none;
-            color: white;
-            font-weight: 600;
-            border: 1px solid transparent;
-            transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            opacity: 0.95;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: var(--card-border);
-        }
-
-        .profile-card {
-            padding: 24px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--card-border);
-        }
-
-        .avatar {
-            width: 92px;
-            height: 92px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            font-size: 2.4rem;
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(167, 139, 250, 0.25));
-            margin-bottom: 18px;
-        }
-
-        .profile-card p {
-            margin: 8px 0;
-            color: var(--muted);
-        }
-
-        .section {
-            margin-top: 28px;
-            padding: 28px;
-            border-radius: 24px;
-            border: 1px solid var(--card-border);
-            background: var(--card);
-            backdrop-filter: blur(14px);
-        }
-
-        .section h2 {
-            margin: 0 0 18px;
-            font-size: 1.5rem;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-        }
-
-        .card {
-            padding: 18px;
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--card-border);
-        }
-
-        .card h3 {
-            margin: 0 0 10px;
-            font-size: 1.05rem;
-        }
-
-        .card p {
-            color: var(--muted);
-        }
-
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 0;
-            margin: 0;
-            list-style: none;
-        }
-
-        .tag-list li {
-            padding: 10px 14px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--card-border);
-            color: var(--text);
-        }
-
-        .footer {
-            text-align: center;
-            color: var(--muted);
-            padding: 28px 0 0;
-            font-size: 0.95rem;
-        }
-
-        a {
-            color: #7dd3fc;
-        }
-
-        .lang-content {
-            display: none;
-        }
-
-        .lang-content.active {
-            display: block;
-        }
-
-        @media (max-width: 860px) {
-            .hero {
-                grid-template-columns: 1fr;
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <meta name="theme-color" content="#101722" />
+    <title data-zh="Furong Lin | 人机交互、机器人协作与沉浸式系统">Furong Lin | HCI, HRI &amp; Immersive Systems</title>
+    <meta name="description" content="Furong Lin is an MSc Computer Science student at the University of Birmingham, exploring HCI, HRI, immersive systems and communication in human–drone collaboration." data-zh="Furong Lin，伯明翰大学计算机科学硕士在读，关注人机交互、人机协作、沉浸式系统，以及人与无人机协作中的沟通与信任。" />
+    <link rel="canonical" href="https://furonglin.github.io/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Furong Lin | HCI, HRI &amp; Immersive Systems" />
+    <meta property="og:description" content="From spatial design to intelligent interaction. Research interests, ongoing work and experience in HCI, HRI and immersive systems." />
+    <meta property="og:url" content="https://furonglin.github.io/" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="assets/site.js" defer></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Furong Lin",
+        "url": "https://furonglin.github.io/",
+        "sameAs": ["https://github.com/FurongLin"],
+        "description": "MSc Computer Science student at the University of Birmingham with research interests in HCI, HRI and immersive systems.",
+        "knowsAbout": ["Human-Computer Interaction", "Human-Robot Interaction", "Virtual Reality", "Mixed Reality", "Embodied AI"]
+    }
+    </script>
 </head>
 <body>
-<main class="container">
-    <div class="topbar">
-        <div class="lang-switch">
-            <button class="lang-btn active" id="btn-en" type="button">EN</button>
-            <button class="lang-btn" id="btn-zh" type="button">中文</button>
+    <a class="skip-link" href="#main" data-zh="跳至主要内容">Skip to content</a>
+    <header class="site-header container">
+        <a class="brand" href="#top" aria-label="Furong Lin — back to top" data-zh-aria-label="Furong Lin — 返回顶部">
+            <span class="brand-mark" aria-hidden="true">FL<span>.</span></span>
+            <span>Furong Lin</span>
+        </a>
+        <div class="header-tools">
+            <nav class="site-nav" aria-label="Main navigation" data-zh-aria-label="主导航">
+                <a href="#about" data-zh="关于">About</a>
+                <a href="#projects" data-zh="研究">Research</a>
+                <a href="#experience" data-zh="经历">Experience</a>
+                <a href="#contact" data-zh="联系">Contact</a>
+            </nav>
+            <div class="lang-switch" role="group" aria-label="Language" data-zh-aria-label="语言" hidden>
+                <button class="lang-btn active" id="btn-en" type="button" aria-pressed="true" aria-label="English">EN</button>
+                <button class="lang-btn" id="btn-zh" type="button" aria-pressed="false" aria-label="中文">中文</button>
+            </div>
         </div>
-    </div>
-
-    <section class="hero">
-        <div>
-            <div class="lang-content active" id="hero-en">
-                <span class="badge">Welcome to my homepage 👋</span>
-                <h1>Hello, I'm Leon</h1>
-                <p class="subtitle">
-                    This is my personal website, where I share my projects, skills, learning progress, and a few things I enjoy building.
-                    If you like development, design, or creating useful things, feel free to connect.
-                </p>
+    </header>
+    <main class="container" id="main">
+        <section class="hero" id="top" aria-labelledby="name">
+            <div class="hero-copy">
+                <p class="eyebrow" data-zh="空间 · 交互 · 智能">SPACE · INTERACTION · INTELLIGENCE</p>
+                <h1 class="name" id="name">Furong Lin<span class="name-dot">.</span></h1>
+                <p class="hero-affiliation" data-zh="伯明翰大学 · 计算机科学硕士在读">MSc Computer Science · University of Birmingham</p>
+                <p class="hero-lead" data-zh="探索人与智能系统之间的沟通、信任与交互。">Exploring how people communicate with, trust and interact with intelligent systems.</p>
+                <p class="hero-description" data-zh="从建筑设计到计算机科学，我将空间设计视角带入人机交互、人机协作与虚拟／混合现实研究。">From architecture to computer science, I bring a spatial design perspective to HCI, human–robot interaction and virtual / mixed reality.</p>
                 <div class="actions">
-                    <a class="btn btn-primary" href="#projects">View Projects</a>
-                    <a class="btn btn-secondary" href="#contact">Contact Me</a>
+                    <a class="btn btn-primary" href="#projects"><span data-zh="查看研究">Explore my research</span><span aria-hidden="true">↗</span></a>
+                    <a class="btn btn-secondary" href="assets/Furong_Lin_CV.pdf" target="_blank" rel="noopener noreferrer" type="application/pdf"><span data-zh="简历（PDF）">CV (PDF)</span><span aria-hidden="true">↗</span></a>
+                    <a class="btn btn-secondary" href="https://github.com/FurongLin" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+                </div>
+                <p class="availability"><span class="status-dot" aria-hidden="true"></span><span data-zh="寻求 2027 年全奖博士及带薪研究助理机会">Seeking funded PhD &amp; paid Research Assistant roles for 2027</span></p>
+            </div>
+            <figure class="hero-visual">
+                <div class="visual-topline"><span class="status-label" data-zh="研究进行中">RESEARCH IN PROGRESS</span><span class="visual-number" aria-hidden="true">01 /</span></div>
+                <svg class="research-diagram" viewBox="0 0 560 370" role="img" aria-labelledby="diagram-title diagram-description">
+                    <title id="diagram-title" data-zh="人与带抓钩无人机之间的沟通概念图">Concept diagram of communication between a person and a drone with a grappling hook</title>
+                    <desc id="diagram-description" data-zh="人向模拟无人机传达意图，无人机表达不确定性。此图仅为研究概念示意，并非实验截图。">A person communicates intentions to a simulated drone, which communicates uncertainty. This is a conceptual illustration, not an experiment screenshot.</desc>
+                    <defs>
+                        <pattern id="diagram-grid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="currentColor" opacity="0.12" /></pattern>
+                        <marker id="diagram-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0 L5 3 L0 6" fill="none" stroke="currentColor" stroke-width="1.2" /></marker>
+                    </defs>
+                    <rect width="560" height="370" fill="url(#diagram-grid)" />
+                    <ellipse class="diagram-surface" cx="130" cy="300" rx="61" ry="13" />
+                    <ellipse class="diagram-surface" cx="406" cy="300" rx="72" ry="13" />
+                    <g class="diagram-line" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="130" cy="167" r="19" />
+                        <path d="M107 228v-13c0-15 10-25 23-25s23 10 23 25v13M114 228v38l-7 27m39-65v38l7 27M107 209l-18 34m64-34l24-24" />
+                        <path d="M380 175l-24-16m64 16 24-16m-64 27-24 15m64-15 24 15" />
+                        <ellipse cx="351" cy="155" rx="25" ry="8" /><ellipse cx="449" cy="155" rx="25" ry="8" />
+                        <ellipse cx="351" cy="205" rx="25" ry="8" /><ellipse cx="449" cy="205" rx="25" ry="8" />
+                        <rect class="diagram-accent" x="375" y="167" width="50" height="26" rx="9" />
+                        <path d="M400 193v45c0 14 19 14 19 1m-19 48-15-8v-20l15-8 15 8v20-20l-15 8-15-8m15 8v20l15-8" />
+                        <path class="diagram-accent" d="M181 130c46-37 124-37 173 0" stroke-dasharray="5 7" marker-end="url(#diagram-arrow)" />
+                        <path d="M353 226c-40 36-110 36-156 13" stroke-dasharray="5 7" marker-end="url(#diagram-arrow)" />
+                    </g>
+                    <circle class="diagram-accent" cx="400" cy="180" r="3" fill="currentColor" />
+                    <text class="diagram-label" x="265" y="90" text-anchor="middle" data-zh="任务意图">Task intentions</text>
+                    <text class="diagram-small" x="277" y="282" text-anchor="middle" data-zh="不确定性与澄清">Uncertainty &amp; clarification</text>
+                    <text class="diagram-label" x="130" y="337" text-anchor="middle" data-zh="人">HUMAN</text>
+                    <text class="diagram-label" x="406" y="337" text-anchor="middle" data-zh="智能无人机">INTELLIGENT DRONE</text>
+                </svg>
+                <figcaption class="visual-caption"><strong data-zh="人与无人机协作">Human–drone collaboration</strong><span data-zh="沟通如何塑造信任？· 概念示意">How does communication shape trust? · Concept illustration</span></figcaption>
+            </figure>
+        </section>
+
+        <section class="section section-about" id="about" aria-labelledby="about-title">
+            <div class="section-heading">
+                <div class="section-kicker"><span class="section-index">01</span><p class="eyebrow" data-zh="关于我">ABOUT ME</p></div>
+                <h2 class="section-title" id="about-title" data-zh="从空间设计，走向智能交互。">From designing spaces to studying interaction.</h2>
+            </div>
+            <div class="about-layout">
+                <div class="about-copy">
+                    <p data-zh="我的学术背景始于建筑与建筑设计，现在在伯明翰大学攻读计算机科学转换型硕士，预计于 2026 年 12 月完成学业。这段跨学科经历让我关注人如何感知空间、表达意图，并与技术协作。">My academic background began in architecture and building design. I am now taking the conversion MSc in Computer Science at the University of Birmingham, with completion expected in December 2026. That transition shapes my interest in how people understand spaces, express intentions and work with technology.</p>
+                    <p data-zh="自 2026 年起，我以科研志愿者身份参与伯明翰大学 VR 实验室的研究活动，在推进自己的研究项目的同时协助实验室实验。我尤其关注交互设计如何帮助人理解智能体，并形成恰当的信任。">Since 2026, I have been a research volunteer in the University of Birmingham VR Lab, developing my own research project and assisting with laboratory experiments. I am particularly interested in how interaction design can help people understand intelligent agents and form appropriate trust.</p>
+                </div>
+                <aside class="about-note" aria-label="Interdisciplinary background" data-zh-aria-label="跨学科背景">
+                    <p class="eyebrow" data-zh="我的跨学科路径">A CONNECTING THREAD</p>
+                    <div class="path-step"><span data-zh="建筑设计">Architecture</span><small data-zh="空间思维">Spatial thinking</small></div>
+                    <span class="path-arrow" aria-hidden="true">↓</span>
+                    <div class="path-step"><span data-zh="计算机科学">Computer science</span><small data-zh="构建交互系统">Building interactive systems</small></div>
+                    <span class="path-arrow" aria-hidden="true">↓</span>
+                    <div class="path-step"><span data-zh="人与智能系统">People &amp; intelligent systems</span><small data-zh="沟通、具身交互与信任">Communication, embodiment &amp; trust</small></div>
+                </aside>
+            </div>
+        </section>
+
+        <section class="section" id="research" aria-labelledby="research-title">
+            <div class="section-heading">
+                <div class="section-kicker"><span class="section-index">02</span><p class="eyebrow" data-zh="研究兴趣">RESEARCH INTERESTS</p></div>
+                <h2 class="section-title" id="research-title" data-zh="我希望探索的问题。">The questions that draw me in.</h2>
+            </div>
+            <div class="research-grid">
+                <article class="interest">
+                    <span class="interest-number" aria-hidden="true">01 /</span>
+                    <h3 data-zh="协作与信任">Collaboration &amp; trust</h3>
+                    <p data-zh="人应如何与机器人沟通意图？智能系统应如何表达不确定性，以支持有效协作与恰当的信任？">How can people communicate intentions to robots, and how should intelligent systems express uncertainty to support collaboration and appropriate trust?</p>
+                    <p class="interest-tags" data-zh="HRI · 人与无人机协作">HRI · Human–drone collaboration</p>
+                </article>
+                <article class="interest">
+                    <span class="interest-number" aria-hidden="true">02 /</span>
+                    <h3 data-zh="沉浸式交互">Immersive interaction</h3>
+                    <p data-zh="虚拟与混合现实中的空间界面、手势和具身交互，如何让人与数字环境的互动更自然？">How can spatial interfaces, gestures and embodied interaction make engagement with virtual and mixed reality environments more natural?</p>
+                    <p class="interest-tags" data-zh="HCI · VR / MR · 空间计算">HCI · VR / MR · Spatial computing</p>
+                </article>
+                <article class="interest">
+                    <span class="interest-number" aria-hidden="true">03 /</span>
+                    <h3 data-zh="具身智能体">Embodied agents</h3>
+                    <p data-zh="视觉、语言与动作如何帮助智能体理解人的情境，并支持更有意义的对象交互？">How might vision, language and action help intelligent agents understand human context and support more meaningful interaction with objects?</p>
+                    <p class="interest-tags" data-zh="具身 AI · 多模态沟通">Embodied AI · Multimodal communication</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section" id="projects" aria-labelledby="projects-title">
+            <div class="section-heading">
+                <div class="section-kicker"><span class="section-index">03</span><p class="eyebrow" data-zh="当前研究">CURRENT RESEARCH</p></div>
+                <h2 class="section-title" id="projects-title" data-zh="从研究问题，到交互原型。">From a research question to an interactive prototype.</h2>
+            </div>
+            <article class="project-card">
+                <div class="project-layout">
+                    <div class="project-main">
+                        <div class="project-heading"><span class="status-label" data-zh="研究进行中">RESEARCH IN PROGRESS</span></div>
+                        <h3 class="project-title" data-zh="人与无人机协作中的多模态沟通与信任">Multimodal Communication and Trust in Human–Drone Collaboration</h3>
+                        <p class="project-summary" data-zh="我正在探索人与智能无人机之间的意图和不确定性沟通，如何影响信任及协作任务表现。当前原型使用下方带有抓钩的模拟无人机。">I am exploring how communication of intentions and uncertainty between a person and an intelligent drone may affect trust and collaborative task performance. The current prototype uses a simulated drone with an underslung grappling hook.</p>
+                        <ul class="tag-list" aria-label="Project topics" data-zh-aria-label="项目主题"><li>HRI</li><li data-zh="多模态交互">Multimodal interaction</li><li data-zh="人机信任">Human–AI trust</li></ul>
+                        <dl class="project-facts">
+                            <div><dt data-zh="研究问题">Question</dt><dd data-zh="沟通能否改善人的信任，并支持更好的协作？">Can communication improve human trust and support better collaboration?</dd></div>
+                            <div><dt data-zh="当前阶段">Current stage</dt><dd data-zh="原型探索与实验设计；研究问题和实验条件仍在完善。">Prototype exploration and study design; research questions and conditions are still evolving.</dd></div>
+                        </dl>
+                    </div>
+                    <aside class="project-question">
+                        <span class="quote-mark" aria-hidden="true">“</span>
+                        <p data-zh="当无人机不确定时，它应该如何向人寻求澄清？">When a drone is uncertain, how should it ask a person for clarification?</p>
+                        <span class="question-caption" data-zh="正在探索的研究问题">A QUESTION UNDER EXPLORATION</span>
+                    </aside>
+                </div>
+                <details class="project-details">
+                    <summary><span data-zh="查看正在探索的沟通方式">Explore the communication modes</span><span class="details-icon" aria-hidden="true">+</span></summary>
+                    <div class="study-grid">
+                        <div class="study-mode"><h4 data-zh="语言交互">Verbal interaction</h4><p data-zh="允许人以语言向无人机传达任务意图。">Allowing a person to communicate task intentions to the drone verbally.</p></div>
+                        <div class="study-mode"><h4 data-zh="非语言交互">Non-verbal interaction</h4><p data-zh="探索无人机不使用语言沟通时的交互体验。">Exploring interaction when the drone does not communicate verbally.</p></div>
+                        <div class="study-mode"><h4 data-zh="视觉澄清提示">Visual clarification</h4><p data-zh="当无人机存在不确定性时，通过模拟显示界面提出澄清问题。">Using a simulated visual display to ask clarification questions when the drone is uncertain.</p></div>
+                    </div>
+                    <p class="research-note" data-zh="这些是候选研究方向，并非已经确定的实验条件或研究结论。">These are candidate study directions, rather than a final experimental design or established findings.</p>
+                </details>
+            </article>
+            <p class="exploration-note" data-zh="相关原型开发：使用 Unity 和 Meta Quest 构建虚拟助手原型，涉及 NavMesh 导航、虚拟人动画、Animation Rigging／逆运动学及 Quest 3 透视功能。">Related prototyping: a virtual-assistant prototype built with Unity and Meta Quest, involving NavMesh navigation, humanoid animation, Animation Rigging / inverse kinematics and Quest 3 passthrough.</p>
+        </section>
+
+        <section class="section section-experience" id="experience" aria-labelledby="experience-title">
+            <div class="section-heading">
+                <div class="section-kicker"><span class="section-index">04</span><p class="eyebrow" data-zh="经历与教育">EXPERIENCE &amp; EDUCATION</p></div>
+                <h2 class="section-title" id="experience-title" data-zh="设计、开发与研究的交汇。">Where design, development and research meet.</h2>
+            </div>
+            <div class="timeline">
+                <article class="timeline-item">
+                    <p class="timeline-date" data-zh="2026 年 — 至今">2026 — Present</p>
+                    <div class="timeline-body"><h3 data-zh="科研志愿者">Research Volunteer</h3><p class="timeline-org" data-zh="伯明翰大学 · VR 实验室">University of Birmingham · VR Lab</p><p data-zh="推进正在进行的人与无人机协作研究项目，并协助实验室开展实验。关注沉浸式交互、沟通与智能体。">Developing an ongoing human–drone collaboration research project and assisting with laboratory experiments, with interests in immersive interaction, communication and intelligent agents.</p></div>
+                </article>
+                <article class="timeline-item">
+                    <p class="timeline-date" data-zh="2026 年 1 月 — 12 月（预计）">Jan — Dec 2026 (expected)</p>
+                    <div class="timeline-body"><h3 data-zh="计算机科学硕士">MSc Computer Science</h3><p class="timeline-org" data-zh="英国 · 伯明翰大学">University of Birmingham, United Kingdom</p><p data-zh="转换型计算机科学硕士。在建筑设计背景之上发展编程与计算机科学能力，包括 Python、C# 和 Unity。">A conversion MSc, developing programming and computer science skills including Python, C# and Unity, building on a background in architecture and building design.</p></div>
+                </article>
+                <article class="timeline-item">
+                    <p class="timeline-date" data-zh="此前的专业经历">Previous professional experience</p>
+                    <div class="timeline-body"><h3 data-zh="软件工程与 Java 后端开发">Software engineering &amp; Java backend development</h3><p data-zh="曾参与企业软件系统、监控与可观测性平台、后端服务和 API 开发，具备数据库及分布式系统相关技术经验。">Experience with enterprise software systems, monitoring and observability platforms, backend services and API development, alongside database and distributed system technologies.</p></div>
+                </article>
+            </div>
+        </section>
+
+        <section class="section" id="skills" aria-labelledby="skills-title">
+            <div class="section-heading">
+                <div class="section-kicker"><span class="section-index">05</span><p class="eyebrow" data-zh="技术工具">TECHNICAL TOOLKIT</p></div>
+                <h2 class="section-title" id="skills-title" data-zh="用于探索与实现的工具。">Tools for exploring and building.</h2>
+            </div>
+            <div class="skills-layout">
+                <div class="skill-group"><p class="skill-category" data-zh="当前与发展中的技能">CURRENT &amp; DEVELOPING</p><h3 data-zh="沉浸式系统">Immersive systems</h3><ul class="tag-list"><li>Unity</li><li>C#</li><li>Meta Quest / XR SDK</li><li>VRM</li><li>Animation Rigging / IK</li><li>NavMesh</li></ul></div>
+                <div class="skill-group"><p class="skill-category" data-zh="当前与发展中的技能">CURRENT &amp; DEVELOPING</p><h3 data-zh="AI 与开发工具">AI &amp; development</h3><ul class="tag-list"><li>Python</li><li data-zh="AI 与视觉语言模型">AI / Vision-Language Models</li><li>Git / GitHub</li><li data-zh="混合现实开发">Mixed Reality development</li></ul></div>
+                <div class="skill-group"><p class="skill-category" data-zh="此前的软件工程技术栈">PREVIOUS ENGINEERING STACK</p><h3 data-zh="后端与基础设施">Backend &amp; infrastructure</h3><ul class="tag-list"><li>Java</li><li>Spring Boot / Cloud</li><li>MySQL</li><li>Redis</li><li>Kafka</li><li>ClickHouse</li><li>Docker</li><li>Linux</li></ul></div>
+            </div>
+        </section>
+
+        <section class="section contact" id="contact" aria-labelledby="contact-title">
+            <div class="contact-panel">
+                <div class="contact-copy">
+                    <p class="eyebrow" data-zh="2027 年 · 下一步">2027 · WHAT COMES NEXT</p>
+                    <h2 id="contact-title" data-zh="一起探索新的研究问题。">Let’s explore what comes next.</h2>
+                    <p data-zh="我正在寻找 2027 年全额资助的博士及带薪研究助理机会，尤其关注 HCI、HRI、VR／MR、具身智能与人机协作。欢迎与研究导师、团队和潜在合作者交流。">I am seeking fully funded PhD and paid Research Assistant opportunities for 2027 in HCI, HRI, VR / MR, embodied AI and human–robot collaboration. I welcome conversations with potential supervisors, research teams and collaborators.</p>
+                    <p class="contact-locations" data-zh="意向地区：日本、英国、欧洲（尤其北欧）、香港和韩国。">Open to opportunities in Japan, the UK, Europe (especially the Nordics), Hong Kong and South Korea.</p>
+                </div>
+                <div class="contact-links">
+                    <a class="contact-link" href="mailto:fxl533@student.bham.ac.uk"><span><small data-zh="邮箱">EMAIL</small>fxl533@student.bham.ac.uk</span><span aria-hidden="true">↗</span></a>
+                    <a class="contact-link" href="assets/Furong_Lin_CV.pdf" target="_blank" rel="noopener noreferrer" type="application/pdf"><span><small data-zh="简历">CURRICULUM VITAE</small><span data-zh="下载简历（PDF）">Download CV (PDF)</span></span><span aria-hidden="true">↗</span></a>
+                    <a class="contact-link" href="https://github.com/FurongLin" target="_blank" rel="noopener noreferrer"><span><small>GITHUB</small>github.com/FurongLin</span><span aria-hidden="true">↗</span></a>
                 </div>
             </div>
-
-            <div class="lang-content" id="hero-zh">
-                <span class="badge">欢迎来到我的主页 👋</span>
-                <h1>你好，我是 Leon</h1>
-                <p class="subtitle">
-                    这里是我的个人网站，我会在这里分享我的项目、技能、学习进展，以及一些我喜欢做的东西。
-                    如果你也喜欢开发、设计，或者创造有用的内容，欢迎联系我。
-                </p>
-                <div class="actions">
-                    <a class="btn btn-primary" href="#projects">查看项目</a>
-                    <a class="btn btn-secondary" href="#contact">联系我</a>
-                </div>
-            </div>
-        </div>
-
-        <aside class="profile-card">
-            <div class="avatar">L</div>
-
-            <div class="lang-content active" id="profile-en">
-                <p><strong>Role:</strong> Independent Developer / Learner</p>
-                <p><strong>Focus:</strong> Frontend, personal projects, GitHub Pages</p>
-                <p><strong>Goal:</strong> Keep building, keep learning, keep shipping</p>
-            </div>
-
-            <div class="lang-content" id="profile-zh">
-                <p><strong>身份：</strong> 独立开发者 / 学习者</p>
-                <p><strong>方向：</strong> 前端、个人项目、GitHub Pages</p>
-                <p><strong>目标：</strong> 持续学习，持续创作，持续完成作品</p>
-            </div>
-        </aside>
-    </section>
-
-    <section class="section">
-        <div class="lang-content active" id="skills-title-en">
-            <h2>Skills</h2>
-        </div>
-        <div class="lang-content" id="skills-title-zh">
-            <h2>技能</h2>
-        </div>
-
-        <ul class="tag-list">
-            <li>HTML</li>
-            <li>CSS</li>
-            <li>JavaScript</li>
-            <li>GitHub Pages</li>
-            <li>Responsive Design</li>
-            <li>Personal Websites</li>
-        </ul>
-    </section>
-
-    <section class="section" id="projects">
-        <div class="lang-content active" id="projects-title-en">
-            <h2>Projects</h2>
-        </div>
-        <div class="lang-content" id="projects-title-zh">
-            <h2>项目展示</h2>
-        </div>
-
-        <div class="grid">
-            <div class="card">
-                <div class="lang-content active">
-                    <h3>Personal Homepage</h3>
-                    <p>A clean and modern website to introduce myself and showcase my work.</p>
-                </div>
-                <div class="lang-content">
-                    <h3>个人主页</h3>
-                    <p>一个简洁现代的网站，用于介绍我自己并展示我的作品。</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="lang-content active">
-                    <h3>Portfolio Page</h3>
-                    <p>A place to display featured projects, screenshots, and live links.</p>
-                </div>
-                <div class="lang-content">
-                    <h3>作品集页面</h3>
-                    <p>用于展示精选项目、截图和在线链接的页面。</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="lang-content active">
-                    <h3>Blog / Notes</h3>
-                    <p>A simple space for learning notes, technical thoughts, and daily ideas.</p>
-                </div>
-                <div class="lang-content">
-                    <h3>博客 / 笔记</h3>
-                    <p>记录学习笔记、技术思考和日常灵感的简单空间。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <div class="lang-content active" id="about-title-en">
-            <h2>About Me</h2>
-        </div>
-        <div class="lang-content" id="about-title-zh">
-            <h2>关于我</h2>
-        </div>
-
-        <div class="grid">
-            <div class="card">
-                <div class="lang-content active">
-                    <h3>What I Like</h3>
-                    <p>Clean interfaces, simple design, and products that solve real problems.</p>
-                </div>
-                <div class="lang-content">
-                    <h3>我喜欢什么</h3>
-                    <p>干净的界面、简单的设计，以及真正能解决问题的产品。</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="lang-content active">
-                    <h3>What I'm Doing</h3>
-                    <p>Learning frontend development and improving my personal website step by step.</p>
-                </div>
-                <div class="lang-content">
-                    <h3>我正在做什么</h3>
-                    <p>学习前端开发，并一步步完善我的个人网站。</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="lang-content active">
-                    <h3>What's Next</h3>
-                    <p>Adding more sections, smoother animations, and a more complete portfolio.</p>
-                </div>
-                <div class="lang-content">
-                    <h3>下一步计划</h3>
-                    <p>增加更多模块、更流畅的动画，以及更完整的作品集。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" id="contact">
-        <div class="lang-content active" id="contact-title-en">
-            <h2>Contact</h2>
-        </div>
-        <div class="lang-content" id="contact-title-zh">
-            <h2>联系我</h2>
-        </div>
-
-        <div class="card">
-            <div class="lang-content active">
-                <p>GitHub: <a href="https://github.com/" target="_blank" rel="noreferrer">your GitHub link</a></p>
-                <p>Email: <a href="mailto:your@email.com">your@email.com</a></p>
-                <p>If you'd like, I can also help you turn this into a <strong>minimal style</strong>, <strong>portfolio style</strong>, <strong>dark tech style</strong>, or <strong>blog style</strong> homepage.</p>
-            </div>
-            <div class="lang-content">
-                <p>GitHub：<a href="https://github.com/" target="_blank" rel="noreferrer">your GitHub link</a></p>
-                <p>邮箱：<a href="mailto:your@email.com">your@email.com</a></p>
-                <p>如果你愿意，我还可以继续帮你把它做成 <strong>极简风</strong>、<strong>作品集风</strong>、<strong>科技暗黑风</strong> 或 <strong>博客风</strong> 首页。</p>
-            </div>
-        </div>
-    </section>
-
-    <div class="footer">
-        <div class="lang-content active">© 2026 Leon · Made with GitHub Pages</div>
-        <div class="lang-content">© 2026 Leon · 使用 GitHub Pages 制作</div>
-    </div>
-</main>
-
-<script>
-    const btnEn = document.getElementById('btn-en');
-    const btnZh = document.getElementById('btn-zh');
-
-    const showLanguage = (lang) => {
-        const enElements = document.querySelectorAll('.lang-content:not(#hero-zh):not(#profile-zh):not(#skills-title-zh):not(#projects-title-zh):not(#about-title-zh):not(#contact-title-zh)');
-        const zhElements = document.querySelectorAll('#hero-zh, #profile-zh, #skills-title-zh, #projects-title-zh, #about-title-zh, #contact-title-zh, .footer .lang-content:last-child');
-
-        document.querySelectorAll('.lang-content').forEach(el => el.classList.remove('active'));
-
-        if (lang === 'en') {
-            document.querySelectorAll('#hero-en, #profile-en, #skills-title-en, #projects-title-en, #about-title-en, #contact-title-en, .footer .lang-content:first-child')
-                .forEach(el => el.classList.add('active'));
-            document.querySelectorAll('.card .lang-content:first-child').forEach(el => el.classList.add('active'));
-            btnEn.classList.add('active');
-            btnZh.classList.remove('active');
-            document.documentElement.lang = 'en';
-        } else {
-            document.querySelectorAll('#hero-zh, #profile-zh, #skills-title-zh, #projects-title-zh, #about-title-zh, #contact-title-zh, .footer .lang-content:last-child')
-                .forEach(el => el.classList.add('active'));
-            document.querySelectorAll('.card .lang-content:last-child').forEach(el => el.classList.add('active'));
-            btnZh.classList.add('active');
-            btnEn.classList.remove('active');
-            document.documentElement.lang = 'zh-CN';
-        }
-    };
-
-    btnEn.addEventListener('click', () => showLanguage('en'));
-    btnZh.addEventListener('click', () => showLanguage('zh'));
-
-    showLanguage('en');
-</script>
+        </section>
+    </main>
+    <footer class="site-footer container">
+        <p>© 2026 Furong Lin <span aria-hidden="true">·</span> <span data-zh="使用 GitHub Pages 构建">Built with GitHub Pages</span></p>
+        <a href="#top"><span data-zh="返回顶部">Back to top</span> <span aria-hidden="true">↑</span></a>
+    </footer>
 </body>
 </html>
