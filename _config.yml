@@ -1,0 +1,12 @@
+# Publish the static website only. The API is deployed separately to Vercel.
+exclude:
+    - services
+    - tests
+    - AGENTS.md
+    - node_modules
+    - vendor
+    - Gemfile
+    - Gemfile.lock
+    - .sass-cache
+    - .jekyll-cache
+    - .jekyll-metadata

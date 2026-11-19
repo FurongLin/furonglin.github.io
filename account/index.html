@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c1320" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title data-zh="所有者工作区 | Furong Lin">Owner workspace | Furong Lin</title>
+    <meta name="description" content="A private workspace accessible only to the site owner’s Google account." data-zh="仅供网站所有者通过 Google 账号访问的私人工作区。" />
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link rel="stylesheet" href="../assets/pdf-translator.css" />
+    <script src="../assets/site.js" defer></script>
+    <script src="../assets/translator-config.js" defer></script>
+    <script src="../assets/pdf-translator.js" defer></script>
+</head>
+<body class="pdf-translator-page">
+    <a class="skip-link" href="#main" data-zh="跳至主要内容">Skip to content</a>
+    <header class="site-header container">
+        <a class="brand" href="../index.html" aria-label="Furong Lin portfolio" data-zh-aria-label="Furong Lin 个人网站">
+            <span class="brand-mark" aria-hidden="true">FL<span>.</span></span>
+            <span>Furong Lin</span>
+        </a>
+        <div class="header-tools">
+            <nav class="site-nav" aria-label="Main navigation" data-zh-aria-label="主导航">
+                <a href="../index.html" data-zh="返回个人网站">Back to portfolio</a>
+            </nav>
+            <div class="lang-switch" role="group" aria-label="Language" data-zh-aria-label="语言" hidden>
+                <button class="lang-btn active" id="btn-en" type="button" aria-pressed="true" aria-label="English">EN</button>
+                <button class="lang-btn" id="btn-zh" type="button" aria-pressed="false" aria-label="中文">中文</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container translator-main" id="main">
+        <section class="workspace-intro" aria-labelledby="workspace-title">
+            <div class="workspace-intro-copy">
+                <p class="translator-kicker" data-zh="私人访问">PRIVATE ACCESS</p>
+                <h1 id="workspace-title" data-zh="所有者工作区">Owner workspace</h1>
+                <p class="translator-lead" data-zh="此工作区仅供网站所有者使用。">A workspace reserved for the site owner.</p>
+                <p class="translator-description" data-zh="请使用网站所有者的 Google 账号登录。只有验证身份后，私人功能才会显示。">Sign in with the site owner’s Google account. Private features are available after your identity is verified.</p>
+            </div>
+            <aside class="account-panel" aria-labelledby="access-title">
+                <h2 id="access-title" data-zh="私人访问">Private access</h2>
+                <p id="auth-note" data-zh="仅允许网站所有者的 Google 账号访问。">Access is limited to the site owner’s Google account.</p>
+                <div id="google-signin"></div>
+                <div class="account-info" id="account-info" hidden>
+                    <span id="account-name"></span>
+                    <button class="btn btn-secondary" id="sign-out" type="button" data-zh="退出登录">Sign out</button>
+                </div>
+                <p class="service-status" id="service-status" role="status">Checking availability…</p>
+                <noscript><p class="noscript-note" data-zh="请启用 JavaScript 以登录工作区。">Enable JavaScript to sign in to the workspace.</p></noscript>
+            </aside>
+        </section>
+
+        <div id="private-workspace" hidden>
+            <section class="translator-intro" aria-labelledby="translator-title">
+                <div class="translator-intro-copy">
+                    <p class="translator-kicker" data-zh="私人阅读工具">A PRIVATE READING TOOL</p>
+                    <h2 id="translator-title" data-zh="PDF 翻译工具">PDF Translator</h2>
+                    <p class="translator-lead" data-zh="由 Gemini 支持的阅读工作区。">A Gemini-powered reading workspace.</p>
+                    <p class="translator-description" data-zh="上传 PDF，选择语言，逐页阅读译文。">Upload a PDF, choose a language and read its translation page by page.</p>
+                </div>
+            </section>
+
+            <section class="translator-panel" aria-labelledby="document-title">
+                <div class="panel-heading">
+                    <div>
+                        <p class="translator-kicker" data-zh="准备文档">PREPARE YOUR DOCUMENT</p>
+                        <h2 id="document-title" data-zh="开始翻译">Start a translation</h2>
+                    </div>
+                    <p class="panel-note" data-zh="译文会重新排版，不复刻原 PDF 的布局。">The translation uses a reading layout; it does not reproduce the original PDF design.</p>
+                </div>
+
+                <form id="translate-form">
+                    <fieldset id="translator-fields" disabled>
+                        <legend class="visually-hidden" data-zh="文档与翻译选项">Document and translation options</legend>
+                        <label class="upload-zone" id="drop-zone" for="pdf-file" tabindex="0" aria-label="Choose a PDF or drop it here" data-zh-aria-label="选择 PDF 或拖放到此处" aria-describedby="selected-file">
+                            <input class="visually-hidden" id="pdf-file" name="pdf-file" type="file" accept="application/pdf,.pdf" />
+                            <span class="upload-label" data-zh="将 PDF 拖放到这里">Drop a PDF here</span>
+                            <span class="upload-action" data-zh="或点击选择文件">or select a file</span>
+                            <span class="upload-hint" data-zh="一次翻译一个文档">One document at a time</span>
+                        </label>
+                        <p class="field-help selected-file" id="selected-file" data-zh="仅限 PDF，最大 2 MiB。">PDF only, up to 2 MiB.</p>
+
+                        <div class="translation-options">
+                            <div class="form-field">
+                                <label for="target-language" data-zh="译为">Translate into</label>
+                                <select id="target-language" name="target-language">
+                                    <option value="zh-CN" data-zh="简体中文" selected>Simplified Chinese</option>
+                                    <option value="en" data-zh="英语">English</option>
+                                    <option value="ja" data-zh="日语">Japanese</option>
+                                    <option value="ko" data-zh="韩语">Korean</option>
+                                    <option value="fr" data-zh="法语">French</option>
+                                    <option value="de" data-zh="德语">German</option>
+                                    <option value="es" data-zh="西班牙语">Spanish</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="page-mode" data-zh="翻译页数">Pages to translate</label>
+                                <select id="page-mode" name="page-mode">
+                                    <option value="all" data-zh="全部页面">All pages</option>
+                                    <option value="range" data-zh="指定页码范围">A page range</option>
+                                </select>
+                            </div>
+                            <div class="range-controls" id="range-controls" hidden>
+                                <div class="form-field">
+                                    <label for="page-start" data-zh="起始页">From page</label>
+                                    <input id="page-start" name="page-start" type="number" min="1" max="100" value="1" inputmode="numeric" />
+                                </div>
+                                <div class="form-field">
+                                    <label for="page-end" data-zh="结束页">To page</label>
+                                    <input id="page-end" name="page-end" type="number" min="1" max="100" value="5" inputmode="numeric" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <details class="translation-details">
+                            <summary data-zh="更多阅读选项">More reading options</summary>
+                            <div class="advanced-options">
+                                <div class="form-field">
+                                    <label for="batch-size" data-zh="每次翻译页数">Pages per step</label>
+                                    <select id="batch-size" name="batch-size" aria-describedby="batch-help">
+                                        <option value="1" data-zh="1 页">1 page</option>
+                                        <option value="2" data-zh="2 页" selected>2 pages</option>
+                                        <option value="5" data-zh="5 页">5 pages</option>
+                                    </select>
+                                </div>
+                                <p class="field-help" id="batch-help" data-zh="内容较密集的文档可选择较少页数。译文会随进度逐步显示。">Choose fewer pages for dense documents. The translation appears as each step finishes.</p>
+                            </div>
+                        </details>
+
+                        <label class="consent-label" for="privacy-consent">
+                            <input id="privacy-consent" name="privacy-consent" type="checkbox" required />
+                            <span data-zh="我同意将此 PDF 发送给 Google Gemini 处理。本站不会持久保存 PDF 或译文。">I agree to send this PDF to Google Gemini for processing. This site does not persistently store PDFs or translations.</span>
+                        </label>
+                        <p class="field-help" data-zh="翻译使用 Gemini 免费层项目的额度。达到限额后，请稍后再试。">Translation uses the quota of your Gemini Free Tier project. If you reach a limit, try again later.</p>
+                    <div class="form-actions">
+                            <button class="btn btn-primary" id="submit-translation" type="submit" data-zh="翻译 PDF">Translate PDF</button>
+                            <button class="btn btn-secondary" id="cancel-translation" type="button" data-zh="停止翻译" hidden>Stop translation</button>
+                        </div>
+                    </fieldset>
+                </form>
+                <div class="translation-progress" id="translation-progress" hidden>
+                    <progress id="progress-bar" max="100" value="0" aria-label="Translation progress" data-zh-aria-label="翻译进度"></progress>
+                    <p id="progress-label"></p>
+                </div>
+                <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
+            </section>
+
+            <section class="result-section" id="result-section" aria-labelledby="result-title" hidden>
+                <div class="result-heading">
+                    <div>
+                        <p class="translator-kicker" data-zh="阅读与保存">READ &amp; KEEP</p>
+                        <h2 id="result-title" data-zh="你的译文">Your translation</h2>
+                        <p class="field-help" id="result-summary"></p>
+                    </div>
+                    <div class="result-actions" role="group" aria-label="Save the translation" data-zh-aria-label="保存译文">
+                        <button class="btn btn-secondary" id="copy-result" type="button" data-zh="复制" disabled>Copy</button>
+                        <button class="btn btn-secondary" id="download-result" type="button" data-zh="下载 Markdown" disabled>Download Markdown</button>
+                        <button class="btn btn-secondary" id="print-result" type="button" data-zh="打印 / 保存 PDF" disabled>Print / Save PDF</button>
+                    </div>
+                </div>
+                <div class="reading-layout">
+                    <div class="result-copy">
+                        <div class="translation-output" id="translation-output"></div>
+                    </div>
+                    <div class="source-preview" id="source-preview" hidden>
+                        <h3 data-zh="原文参考">Original document</h3>
+                        <p><a id="open-original" target="_blank" rel="noopener noreferrer" data-zh="在新标签页查看原文">Open original in a new tab</a></p>
+                        <iframe id="pdf-preview" title="Original PDF preview" aria-label="Original PDF preview" data-zh-aria-label="原始 PDF 预览" sandbox="" referrerpolicy="no-referrer"></iframe>
+                    </div>
+                </div>
+            </section>
+            <footer class="private-workspace-footer">
+                <p data-zh="文档由 Google Gemini 处理，本站不持久保存 PDF 或译文。">Documents are processed by Google Gemini. This site does not persistently store PDFs or translations.</p>
+            </footer>
+        </div>
+    </main>
+
+    <footer class="translator-footer container">
+        <p data-zh="Furong Lin · 仅限所有者访问">Furong Lin · Owner access</p>
+    </footer>
+</body>
+</html>

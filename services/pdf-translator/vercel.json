@@ -1,0 +1,31 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "framework": null,
+    "buildCommand": "",
+    "installCommand": "npm ci --omit=dev",
+    "outputDirectory": "public",
+    "env": {
+        "NODEJS_HELPERS": "0"
+    },
+    "functions": {
+        "api/*.js": {
+            "maxDuration": 300,
+            "supportsCancellation": true
+        }
+    },
+    "headers": [
+        {
+            "source": "/api/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "no-store"
+                },
+                {
+                    "key": "Vercel-CDN-Cache-Control",
+                    "value": "no-store"
+                }
+            ]
+        }
+    ]
+}

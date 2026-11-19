@@ -8,7 +8,9 @@
 - `index.html` 是网站入口；`assets/styles.css` 管理样式，`assets/site.js` 管理中英文切换，`assets/favicon.svg` 为站点图标。
 - `assets/Furong_Lin_CV.pdf` 是用户提供的公开简历副本，更新时替换此文件并保留链接路径。
 - 页面包括个人介绍、研究兴趣、进行中的研究、经历与教育、技术工具和联系方式，支持中英文切换。
-- 当前没有依赖清单、构建脚本、自动化测试或前端框架，直接打开 HTML 即可预览。
+- 个人网站仍为原生静态页面，直接打开 HTML 可预览；私人工作区和 Google 登录需要通过 HTTP/HTTPS 访问。
+- `account/index.html` 是所有者工作区；`assets/pdf-translator.js`、`assets/pdf-translator.css` 提供私人 PDF 阅读与翻译界面。
+- 独立后端位于 `services/pdf-translator/`，使用 Vercel Node.js 24 Functions、Google ID token 验证及 Gemini API，不迁移 GitHub Pages 网站。
 - 个人信息以用户提供的最新资料为准，不虚构个人经历、成果、论文、雇主、作品或联系方式。
 - MSc 预计于 2026 年 12 月完成，用户要求暂不展示最终成绩；VR Lab 经历应写为科研志愿者，不暗示正式研究职位。
 - 无人机项目仍处于原型探索和实验设计阶段；候选实验方向不应被表述为已验证结果，研究示意图不能充当真实实验截图。
@@ -33,6 +35,18 @@
 - 语言按钮为 `btn-en` 和 `btn-zh`，使用 `.active` 和 `aria-pressed` 同步状态。新增内容无需维护区块 ID 清单或依赖中英文块的 DOM 顺序。
 - 切换时需同步按钮的激活状态和 `<html lang>`，英文为 `en`，中文为 `zh-CN`。
 
+## 私人工作区
+
+- 个人网站无需登录即可浏览。只有后端成功验证获准的 Google 账户后，才可显示 `#private-workspace` 内的 PDF 功能。
+- 前端隐藏界面不是访问控制；`/api/session` 和每次 `/api/translate` 请求都必须在后端验证 Google 签名、受众、有效期、邮箱验证状态和账户白名单。
+- 允许的账户仅通过后端环境变量配置，不写入前端、示例文件或公开文档；缺少身份配置时应拒绝访问。
+- `assets/translator-config.js` 只保存公开的后端 HTTPS origin。Google ID token 只保存在页面内存，不能写入 localStorage、URL 或日志。
+- Gemini 和部署平台密钥只能放在服务端秘密配置中；禁止提交真实密钥、`.env`、`.vercel` 或含秘密的日志。
+- `_config.yml` 排除后端和测试目录，避免 GitHub Pages 将其作为静态网站文件发布；这不能代替源码内不含秘密的要求。
+- 文档默认不持久保存；只有用户明确点击翻译并同意处理后，才发送 PDF 至 Google Gemini。
+- PDF 最大 2 MiB、100 页，每次请求最多翻译 5 页。结果截断时必须显示不完整，不能标记为成功完成。
+- 保留 Vercel 的 `NODEJS_HELPERS=0` 配置和原始请求体大小检查；不得以 CORS 或前端提供的邮箱代替身份验证。
+
 ## 本地预览与验证
 
 直接用浏览器打开 `index.html` 即可预览。如已安装 Python，也可以在仓库根目录运行：
@@ -51,6 +65,8 @@ python -m http.server 8000
 4. 修改交互脚本后，检查浏览器控制台是否出现相关错误。
 
 修改脚本后运行 `node --check assets/site.js`；提交工作结果前运行 `git diff --check`。检查相对资源与 CV 链接、页内锚点，以及 JSON-LD 是否仍有效。纯文档改动只需检查文档内容与格式，无需启动页面或新增测试。无法执行的检查应如实说明，不声称已验证或已上线。
+
+修改私人工作区后运行 `node --check assets/pdf-translator.js` 和 `node --test tests/translator-client.test.cjs`；后端修改在 `services/pdf-translator/` 中运行 `npm test`。模拟测试不能替代真实 Google 登录与真实 Gemini 翻译验收。
 
 ## 部署相关
 
