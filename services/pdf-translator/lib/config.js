@@ -1,4 +1,5 @@
 export const MAX_PDF_BYTES = 2 * 1024 * 1024;
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const MAX_BODY_BYTES = 3 * 1024 * 1024;
 export const MAX_PAGES_PER_BATCH = 5;
 export const MAX_DOCUMENT_PAGES = 100;
@@ -25,6 +26,7 @@ export function normalizeEmail(value) {
 
 export function getConfig(env = process.env) {
     const googleClientId = (env.GOOGLE_CLIENT_ID || '').trim();
+    const ownerSessionSecret = (env.OWNER_SESSION_SECRET || '').trim();
     const allowedEmail = normalizeEmail(env.ALLOWED_GOOGLE_EMAIL);
     const allowedSub = (env.ALLOWED_GOOGLE_SUB || '').trim();
     const geminiApiKey = (env.GEMINI_FREE_TIER_API_KEY || '').trim();
@@ -44,6 +46,7 @@ export function getConfig(env = process.env) {
 
     return {
         googleClientId,
+        ownerSessionSecret,
         allowedEmail,
         allowedSub,
         geminiApiKey,
@@ -58,6 +61,7 @@ export function publicConfig(config) {
     return {
         googleClientId: config.googleClientId,
         maxPdfBytes: MAX_PDF_BYTES,
+        maxUploadBytes: config.ownerSessionSecret.length >= 32 ? MAX_UPLOAD_BYTES : MAX_PDF_BYTES,
         maxPagesPerBatch: MAX_PAGES_PER_BATCH,
         maxDocumentPages: MAX_DOCUMENT_PAGES,
         signInReady: config.signInReady,

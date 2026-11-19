@@ -6,6 +6,14 @@ export function header(req, name) {
     return typeof value === 'string' ? value : '';
 }
 
+export function requireAllowedOrigin(req, config) {
+    const origin = header(req, 'origin');
+    if (!origin || !config.allowedOrigins.includes(origin)) {
+        throw new ApiError(403, 'ORIGIN_NOT_ALLOWED', 'This origin is not allowed.');
+    }
+    return origin;
+}
+
 export function prepareRequest(req, res, config, method) {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('CDN-Cache-Control', 'no-store');
@@ -19,6 +27,7 @@ export function prepareRequest(req, res, config, method) {
     }
     if (origin) {
         res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.setHeader('Access-Control-Allow-Methods', `${method}, OPTIONS`);
         res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
     }
@@ -38,7 +47,7 @@ export function prepareRequest(req, res, config, method) {
     return true;
 }
 
-export async function readJson(req, maxBytes = MAX_BODY_BYTES) {
+export async function readJson(req, maxBytes = MAX_BODY_BYTES, { allowEmpty = false } = {}) {
     if (!/^application\/json(?:\s*;|$)/i.test(header(req, 'content-type'))) {
         throw new ApiError(415, 'JSON_REQUIRED', 'Send an application/json request.');
     }
@@ -69,6 +78,9 @@ export async function readJson(req, maxBytes = MAX_BODY_BYTES) {
         throw new ApiError(400, 'INVALID_BODY', 'The request body could not be read.');
     }
     let body;
+    if (allowEmpty && size === 0) {
+        return {};
+    }
     try {
         const text = new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks, size));
         body = JSON.parse(text);

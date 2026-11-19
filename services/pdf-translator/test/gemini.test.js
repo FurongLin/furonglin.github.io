@@ -19,6 +19,16 @@ test('Gemini request sends inline PDF with sibling 1-indexed metadata and a sepa
     assert.equal(body.generationConfig.maxOutputTokens, 16_384);
 });
 
+test('uploaded PDF requests use fileData and preserve sibling page metadata without inline bytes', () => {
+    const fileUri = 'https://generativelanguage.googleapis.com/v1beta/files/pdf-0123456789abcdef0123456789abcdef';
+    const body = buildGeminiRequest({ ...DOCUMENT, fileUri });
+    assert.deepEqual(body.contents[0].parts[0], {
+        fileData: { mimeType: 'application/pdf', fileUri },
+        documentMetadata: { startPage: 3, endPage: 5, contentLayers: ['PAGE_IMAGE', 'PAGE_TEXT'] }
+    });
+    assert.equal(JSON.stringify(body).includes('synthetic-base64'), false);
+});
+
 test('only STOP with visible text is complete; truncation preserves partial text and thought text is excluded', () => {
     assert.deepEqual(parseGeminiResponse(answer()), { text: '# Translation', complete: true, finishReason: 'STOP' });
     assert.deepEqual(parseGeminiResponse(answer('MAX_TOKENS', [{ thought: true, text: 'private reasoning' }, { text: 'partial' }])), {

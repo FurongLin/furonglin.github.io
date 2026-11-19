@@ -38,13 +38,15 @@
 ## 私人工作区
 
 - 个人网站无需登录即可浏览。只有后端成功验证获准的 Google 账户后，才可显示 `#private-workspace` 内的 PDF 功能。
-- 前端隐藏界面不是访问控制；`/api/session` 和每次 `/api/translate` 请求都必须在后端验证 Google 签名、受众、有效期、邮箱验证状态和账户白名单。
+- 前端隐藏界面不是访问控制；首次登录须在后端验证 Google 签名、受众、有效期、邮箱验证状态和账户白名单。之后每次 `/api/session` 恢复、`/api/upload` 和 `/api/translate` 请求都必须验证网站会话的加密认证、有效期及当前身份配置；显式传入无效 Google Bearer 时不得回退到 Cookie。
 - 允许的账户仅通过后端环境变量配置，不写入前端、示例文件或公开文档；缺少身份配置时应拒绝访问。
 - `assets/translator-config.js` 只保存公开的后端 HTTPS origin。Google ID token 只保存在页面内存，不能写入 localStorage、URL 或日志。
+- 网站会话最长 30 天，仅使用 `__Host-owner_session` Cookie，保留 `HttpOnly; Secure; SameSite=None; Partitioned; Path=/`。前端请求使用 `credentials: 'include'`；Cookie 鉴权还必须校验允许的 Origin。`OWNER_SESSION_SECRET` 只放在后端秘密配置中，轮换后旧会话和上传凭证失效。真实登录验收使用支持分区 Cookie 的 Chromium 浏览器及 HTTPS 网站。
 - Gemini 和部署平台密钥只能放在服务端秘密配置中；禁止提交真实密钥、`.env`、`.vercel` 或含秘密的日志。
 - `_config.yml` 排除后端和测试目录，避免 GitHub Pages 将其作为静态网站文件发布；这不能代替源码内不含秘密的要求。
-- 文档默认不持久保存；只有用户明确点击翻译并同意处理后，才发送 PDF 至 Google Gemini。
-- PDF 最大 2 MiB、100 页，每次请求最多翻译 5 页。结果截断时必须显示不完整，不能标记为成功完成。
+- 本站默认不持久保存文档；只有用户明确点击翻译并同意处理后，才发送 PDF 至 Google Gemini。大于 2 MiB 的 PDF 直接上传至 Google 临时 Files 存储，完成、停止或失败后请求删除；清理未成功时可能保留至自动到期，最长 48 小时，不得宣称全链路零存储。
+- PDF 最大 10 MiB、100 页，每次请求最多翻译 5 页。保留最多 2 MiB 的 inline 兼容路径及 3 MiB 原始 JSON 上限；大文件使用所有者授权的单文件上传能力 URL，不经 Vercel 转发文件正文，也不向前端暴露 Gemini key。上传 URL 和凭证仅用于本次请求，不放入地址栏、本站查询参数、localStorage 或日志。
+- 大文件实际格式、加密状态及页数由浏览器解析；后端验证绑定所有者、大小、页数、文件名和有效期的上传签名，翻译前核对 Google 文件元数据与就绪状态。服务端只接受受验证的上传凭证，不接受任意文件 URI；不得宣称后端独立重新解析了直传大文件。结果截断时必须显示不完整，不能标记为成功完成。
 - 保留 Vercel 的 `NODEJS_HELPERS=0` 配置和原始请求体大小检查；不得以 CORS 或前端提供的邮箱代替身份验证。
 
 ## 本地预览与验证
@@ -66,7 +68,7 @@ python -m http.server 8000
 
 修改脚本后运行 `node --check assets/site.js`；提交工作结果前运行 `git diff --check`。检查相对资源与 CV 链接、页内锚点，以及 JSON-LD 是否仍有效。纯文档改动只需检查文档内容与格式，无需启动页面或新增测试。无法执行的检查应如实说明，不声称已验证或已上线。
 
-修改私人工作区后运行 `node --check assets/pdf-translator.js` 和 `node --test tests/translator-client.test.cjs`；后端修改在 `services/pdf-translator/` 中运行 `npm test`。模拟测试不能替代真实 Google 登录与真实 Gemini 翻译验收。
+修改私人工作区后运行 `node --check assets/pdf-translator.js` 和 `node --test tests/translator-client.test.cjs tests/translator-session.test.cjs`；后端修改在 `services/pdf-translator/` 中运行 `npm test`。模拟测试不能替代真实 Google 登录、Cookie 恢复与退出、10 MiB 直传清理及真实 Gemini 翻译验收。
 
 ## 部署相关
 

@@ -15,14 +15,31 @@ export const TARGET_LANGUAGES = Object.freeze({
     es: 'Spanish'
 });
 
-export async function validateTranslation(body) {
-    const { pdfBase64, targetLanguage, startPage, endPage } = body;
+function readSelection({ targetLanguage, startPage, endPage }) {
     if (!Object.hasOwn(TARGET_LANGUAGES, targetLanguage)) {
         throw new ApiError(400, 'INVALID_LANGUAGE', 'Choose a supported target language.');
     }
     if (!Number.isSafeInteger(startPage) || !Number.isSafeInteger(endPage) || startPage < 1 || endPage < startPage) {
         throw new ApiError(400, 'INVALID_PAGE_RANGE', 'Use a valid inclusive page range starting at page 1.');
     }
+    return { targetLanguage, startPage, endPage };
+}
+
+function clampSelection({ targetLanguage, startPage, endPage }, pageCount) {
+    const clampedEndPage = Math.min(endPage, pageCount);
+    if (startPage > pageCount || clampedEndPage - startPage + 1 > MAX_PAGES_PER_BATCH) {
+        throw new ApiError(400, 'INVALID_PAGE_RANGE', 'Translate at most 5 existing PDF pages per request.');
+    }
+    return { targetLanguage, startPage, endPage: clampedEndPage, pageCount };
+}
+
+export function validateUploadedSelection(body, pageCount) {
+    return clampSelection(readSelection(body), pageCount);
+}
+
+export async function validateTranslation(body) {
+    const selection = readSelection(body);
+    const { pdfBase64 } = body;
     if (typeof pdfBase64 !== 'string' || !pdfBase64) {
         throw new ApiError(400, 'INVALID_PDF_ENCODING', 'Send canonical PDF base64 without a data URL.');
     }
@@ -60,9 +77,5 @@ export async function validateTranslation(body) {
     if (pageCount > MAX_DOCUMENT_PAGES) {
         throw new ApiError(400, 'TOO_MANY_PAGES', 'Choose a PDF with no more than 100 pages.');
     }
-    const clampedEndPage = Math.min(endPage, pageCount);
-    if (startPage > pageCount || clampedEndPage - startPage + 1 > MAX_PAGES_PER_BATCH) {
-        throw new ApiError(400, 'INVALID_PAGE_RANGE', 'Translate at most 5 existing PDF pages per request.');
-    }
-    return { pdfBase64, targetLanguage, startPage, endPage: clampedEndPage, pageCount };
+    return { pdfBase64, ...clampSelection(selection, pageCount) };
 }

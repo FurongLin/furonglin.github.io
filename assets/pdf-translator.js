@@ -51,15 +51,18 @@
         signedIn: ['Account verified', '账户已验证'],
         authNeeded: ['Sign in with the site owner’s Google account.', '请使用网站所有者的 Google 账户登录。'],
         authChecking: ['Verifying your Google account…', '正在验证 Google 账户…'],
+        restoring: ['Checking your saved sign-in…', '正在检查已保存的登录状态…'],
+        signingOut: ['Signing out…', '正在退出登录…'],
+        signOutFailed: ['Local documents have been cleared, but your saved sign-in could not be removed. Check your connection and select Sign out again.', '本地文档已清除，但未能清除已保存的登录状态。请检查网络后再次点击退出登录。'],
         AUTH_FORBIDDEN: ['This Google account is not allowed to use this workspace.', '此 Google 账户没有使用此工作区的权限。'],
         AUTH_REQUIRED: ['Please sign in with Google first.', '请先使用 Google 登录。'],
         AUTH_INVALID: ['Your sign-in has expired or could not be verified. Please sign in again.', '登录已过期或无法验证，请重新登录。'],
         SERVICE_NOT_CONFIGURED: ['The workspace is not available yet.', '工作区暂未开放。'],
         signedOut: ['Signed out. Local documents and translations have been cleared.', '已退出登录，当前页面中的文档和译文已清除。'],
         expired: ['Your sign-in expired. Sign in again to use the workspace.', '登录已过期，请重新登录后使用工作区。'],
-        fileHint: ['PDF only, up to 2 MiB.', '仅限 PDF，最大 2 MiB。'],
+        fileHint: ['PDF only, up to {max} MiB.', '仅限 PDF，最大 {max} MiB。'],
         fileSelected: ['{name} · {size} MiB · stays on your device until you translate', '{name} · {size} MiB · 开始翻译前仅在本机读取'],
-        PDF_TOO_LARGE: ['Choose a PDF no larger than 2 MiB.', '请选择不超过 2 MiB 的 PDF。'],
+        PDF_TOO_LARGE: ['Choose a PDF no larger than {max} MiB.', '请选择不超过 {max} MiB 的 PDF。'],
         INVALID_PDF: ['This file could not be read as a PDF. Use an unencrypted PDF.', '无法读取此 PDF，请使用未加密的有效 PDF。'],
         PDF_ENCRYPTED: ['Unlock the PDF before uploading it.', '请先解除 PDF 的密码保护。'],
         PDF_TOO_MANY_PAGES: ['This workspace supports documents of up to 100 pages.', '此工作区支持最多 100 页的文档。'],
@@ -68,6 +71,10 @@
         INVALID_LANGUAGE: ['Choose a supported target language.', '请选择支持的目标语言。'],
         consent: ['Confirm that this PDF may be sent to Google Gemini.', '请确认同意将此 PDF 发送给 Google Gemini。'],
         reading: ['Reading the PDF on your device…', '正在本机读取 PDF…'],
+        uploading: ['Uploading the PDF to Gemini…', '正在上传 PDF 到 Gemini…'],
+        UPLOAD_UNAVAILABLE: ['The PDF upload could not be completed. Try again.', 'PDF 上传未完成，请重试。'],
+        UPLOAD_NOT_READY: ['Gemini could not confirm the upload. Try again.', 'Gemini 未能确认上传，请重试。'],
+        INVALID_UPLOAD: ['The upload expired or could not be verified. Start the translation again.', '上传已过期或无法验证，请重新开始翻译。'],
         translating: ['Translating pages {start}–{end}…', '正在翻译第 {start}–{end} 页…'],
         progress: ['Completed pages {start}–{end} of the selected {total} pages', '已完成第 {start}–{end} 页，选定范围共 {total} 页'],
         complete: ['Translation complete. Review the text against the original before using it.', '翻译完成。使用前请对照原文检查。'],
@@ -92,9 +99,11 @@
         const byId = id => document.getElementById(id);
         if (!byId('translate-form')) return;
         const ui = Object.fromEntries(['private-workspace', 'google-signin', 'auth-note', 'account-info', 'account-name', 'sign-out', 'service-status', 'translate-form', 'translator-fields', 'drop-zone', 'pdf-file', 'selected-file', 'target-language', 'page-mode', 'range-controls', 'page-start', 'page-end', 'batch-size', 'privacy-consent', 'submit-translation', 'cancel-translation', 'translation-progress', 'progress-bar', 'progress-label', 'status-message', 'result-section', 'result-summary', 'translation-output', 'copy-result', 'download-result', 'print-result', 'source-preview', 'pdf-preview', 'open-original'].map(id => [id, byId(id)]));
-        const state = { config: null, base: '', token: null, account: null, file: null, fileUrl: null, fileVersion: 0, running: false, controller: null, chunks: [], complete: false, resultTarget: 'zh-CN', timer: null, status: null, service: 'checking', auth: 'authNeeded', job: null, signingIn: false };
+        const state = { config: null, base: '', account: null, file: null, fileUrl: null, fileVersion: 0, running: false, controller: null, chunks: [], complete: false, resultTarget: 'zh-CN', timer: null, status: null, service: 'checking', auth: 'restoring', job: null, signingIn: false, restoring: true, signingOut: false, logoutFailed: false, authVersion: 0, authController: null, googlePromise: null, googleInitialised: false };
         const language = () => document.documentElement.lang.startsWith('zh') ? 1 : 0;
-        const t = (key, params = {}) => (messages[key] || messages.SERVER_ERROR)[language()].replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ''));
+        const inlineLimit = () => state.config?.maxPdfBytes || 2 * 1048576;
+        const uploadLimit = () => state.config?.maxUploadBytes || inlineLimit();
+        const t = (key, params = {}) => (messages[key] || messages.SERVER_ERROR)[language()].replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? (name === 'max' ? uploadLimit() / 1048576 : '')));
         const status = (key, params = {}, tone = '') => {
             state.status = { key, params, tone };
             ui['status-message'].textContent = t(key, params);
@@ -102,10 +111,11 @@
         };
 
         function controls() {
-            const authorised = Boolean(state.token && state.account);
+            const authorised = Boolean(state.account && state.account.exp * 1000 > Date.now());
             ui['private-workspace'].hidden = !authorised;
-            ui['account-info'].hidden = !authorised;
-            ui['google-signin'].hidden = authorised;
+            ui['account-info'].hidden = !authorised && !state.logoutFailed;
+            ui['google-signin'].hidden = authorised || state.restoring || state.signingOut || state.logoutFailed;
+            ui['sign-out'].disabled = state.signingOut;
             ui['translator-fields'].disabled = !authorised || !state.config?.translationReady;
             for (const id of ['pdf-file', 'target-language', 'page-mode', 'page-start', 'page-end', 'batch-size', 'privacy-consent']) ui[id].disabled = state.running;
             for (const id of ['page-start', 'page-end']) ui[id].disabled = state.running || ui['page-mode'].value !== 'range';
@@ -131,6 +141,7 @@
         }
 
         function clearDocument() {
+            clearUploadedPdf(state.job);
             state.fileVersion++;
             if (state.fileUrl) URL.revokeObjectURL(state.fileUrl);
             state.file = null;
@@ -149,31 +160,116 @@
             ui['result-summary'].textContent = '';
         }
 
-        function signOut(expired = false) {
+        function clearSession() {
+            state.authVersion++;
+            state.authController?.abort();
+            state.authController = null;
             state.controller?.abort();
-            state.token = null;
             state.account = null;
-            state.auth = 'authNeeded';
-            state.service = state.config?.signInReady ? 'ready' : 'unavailable';
+            state.signingIn = false;
+            state.restoring = false;
             clearTimeout(state.timer);
+            state.timer = null;
             clearDocument();
-            window.google?.accounts.id.disableAutoSelect();
-            status(expired ? 'expired' : 'signedOut');
+        }
+
+        async function signOut(expired = false) {
+            if (state.signingOut) return;
+            clearSession();
+            const version = state.authVersion;
+            state.signingOut = true;
+            state.logoutFailed = false;
+            state.auth = 'signingOut';
+            const controller = new AbortController();
+            state.authController = controller;
+            window.google?.accounts?.id?.disableAutoSelect();
             controls();
             showFile();
+            try {
+                if (state.base) await api('session', { method: 'POST', body: JSON.stringify({ action: 'signout' }), signal: controller.signal });
+                if (version !== state.authVersion) return;
+                state.auth = expired ? 'expired' : 'signedOut';
+                status(expired ? 'expired' : 'signedOut');
+            } catch {
+                if (version !== state.authVersion) return;
+                state.logoutFailed = true;
+                state.auth = 'signOutFailed';
+                status('signOutFailed', {}, 'error');
+            } finally {
+                state.signingOut = false;
+                if (state.authController === controller) state.authController = null;
+                state.service = state.config?.signInReady ? 'ready' : 'unavailable';
+                controls();
+            }
+            if (!state.logoutFailed && version === state.authVersion) await offerGoogleSignIn();
+        }
+
+        function scheduleExpiry() {
+            clearTimeout(state.timer);
+            if (!state.account) return;
+            const remaining = state.account.exp * 1000 - Date.now();
+            if (remaining <= 0) { void signOut(true); return; }
+            // Browser timers overflow after about 24.8 days; remembered sessions last 30 days.
+            state.timer = setTimeout(scheduleExpiry, Math.min(remaining, 2147483647));
+        }
+
+        function acceptSession(account) {
+            if (!account || typeof account.email !== 'string' || !account.email || !Number.isFinite(account.exp) || account.exp * 1000 <= Date.now()) throw new Error('AUTH_INVALID');
+            state.account = account;
+            state.logoutFailed = false;
+            state.auth = 'signedIn';
+            state.service = state.config.translationReady ? 'signedIn' : 'unavailable';
+            scheduleExpiry();
+            state.status = null;
+            ui['status-message'].textContent = '';
+        }
+
+        async function restoreSession() {
+            clearSession();
+            const version = state.authVersion;
+            const controller = new AbortController();
+            state.authController = controller;
+            state.restoring = true;
+            state.auth = 'restoring';
+            controls();
+            try {
+                const account = await api('session', { method: 'POST', body: '{}', signal: controller.signal });
+                if (version !== state.authVersion) return;
+                acceptSession(account);
+            } catch (error) {
+                if (version !== state.authVersion) return;
+                state.auth = error.httpStatus === 401 ? 'authNeeded' : messages[error.message] ? error.message : 'NETWORK_ERROR';
+                state.service = state.config.signInReady ? 'ready' : 'unavailable';
+            } finally {
+                if (version === state.authVersion) {
+                    state.restoring = false;
+                    state.authController = null;
+                    controls();
+                }
+            }
+            if (version === state.authVersion && !state.account) await offerGoogleSignIn();
+        }
+
+        async function offerGoogleSignIn() {
+            if (state.account || state.restoring || state.signingOut || state.logoutFailed || !state.config?.signInReady) return;
+            try { await loadGoogle(); }
+            catch { state.service = 'unavailable'; }
+            controls();
         }
 
         async function api(path, options = {}) {
-            const headers = { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}) };
+            const headers = { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers };
+            const requestSignal = path === 'session' && options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(20000)]) : options.signal || AbortSignal.timeout(20000);
             let response;
             try {
-                response = await fetch(`${state.base}/api/${path}`, { ...options, headers, credentials: 'omit', cache: 'no-store', signal: options.signal || AbortSignal.timeout(20000) });
+                response = await fetch(`${state.base}/api/${path}`, { ...options, headers, credentials: 'include', cache: 'no-store', signal: requestSignal });
             } catch (error) {
                 if (error.name === 'AbortError' || error.name === 'TimeoutError') throw error;
                 throw new Error('NETWORK_ERROR');
             }
             let body;
             try { body = await response.json(); } catch (error) { if (error.name === 'AbortError') throw error; throw new Error('SERVER_ERROR'); }
+            options.signal?.throwIfAborted();
             if (!response.ok) {
                 const aliases = { ACCOUNT_NOT_ALLOWED: 'AUTH_FORBIDDEN', INVALID_ID_TOKEN: 'AUTH_INVALID', SIGN_IN_NOT_CONFIGURED: 'SERVICE_NOT_CONFIGURED', TRANSLATION_NOT_CONFIGURED: 'SERVICE_NOT_CONFIGURED', INVALID_PAGE_RANGE: 'INVALID_RANGE', INVALID_PDF_ENCODING: 'INVALID_PDF', ENCRYPTED_PDF: 'PDF_ENCRYPTED', TOO_MANY_PAGES: 'PDF_TOO_MANY_PAGES', BODY_TOO_LARGE: 'REQUEST_TOO_LARGE', GEMINI_UNAVAILABLE: 'GEMINI_ERROR', GEMINI_EMPTY_RESPONSE: 'GEMINI_ERROR', GEMINI_INCOMPLETE_RESPONSE: 'partial' };
                 const code = aliases[body.error?.code] || body.error?.code || (response.status === 401 ? 'AUTH_INVALID' : response.status === 403 ? 'AUTH_FORBIDDEN' : 'SERVER_ERROR');
@@ -185,49 +281,58 @@
         }
 
         async function credentialReceived(response) {
-            if (state.signingIn || !response.credential) return;
+            if (state.signingIn || state.restoring || state.signingOut || state.logoutFailed || state.account || !response?.credential) return;
+            const version = ++state.authVersion;
+            const controller = new AbortController();
+            state.authController = controller;
             state.signingIn = true;
-            state.token = response.credential;
             state.auth = 'authChecking';
             controls();
             try {
-                const account = await api('session', { method: 'POST', body: '{}' });
-                if (!account.email || !Number.isFinite(account.exp) || account.exp * 1000 <= Date.now()) throw new Error('AUTH_INVALID');
-                state.account = account;
-                state.auth = 'signedIn';
-                state.service = state.config.translationReady ? 'signedIn' : 'unavailable';
-                clearTimeout(state.timer);
-                state.timer = setTimeout(() => signOut(true), Math.max(0, account.exp * 1000 - Date.now() - 5000));
-                ui['status-message'].textContent = '';
-                state.status = null;
+                await api('session', { method: 'POST', body: '{}', headers: { Authorization: `Bearer ${response.credential}` }, signal: controller.signal });
+                if (version !== state.authVersion) return;
+                // Confirm the browser accepted the HttpOnly cookie before showing private tools.
+                const account = await api('session', { method: 'POST', body: '{}', signal: controller.signal });
+                if (version !== state.authVersion) return;
+                acceptSession(account);
             } catch (error) {
-                state.token = null;
+                if (version !== state.authVersion) return;
                 state.account = null;
                 state.auth = messages[error.message] ? error.message : 'AUTH_INVALID';
                 status(state.auth, {}, 'error');
             } finally {
-                state.signingIn = false;
-                controls();
+                if (version === state.authVersion) {
+                    state.signingIn = false;
+                    state.authController = null;
+                    controls();
+                }
             }
         }
 
         async function loadGoogle() {
             if (!window.google?.accounts?.id) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://accounts.google.com/gsi/client';
-                    script.async = true;
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.append(script);
-                });
+                if (!state.googlePromise) {
+                    state.googlePromise = new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://accounts.google.com/gsi/client';
+                        script.async = true;
+                        script.onload = resolve;
+                        script.onerror = () => { script.remove(); state.googlePromise = null; reject(new Error('NETWORK_ERROR')); };
+                        document.head.append(script);
+                    });
+                }
+                await state.googlePromise;
             }
-            window.google.accounts.id.initialize({ client_id: state.config.googleClientId, callback: credentialReceived, auto_select: false });
+            if (state.account || state.restoring || state.signingOut || state.logoutFailed) return;
+            if (!state.googleInitialised) {
+                window.google.accounts.id.initialize({ client_id: state.config.googleClientId, callback: credentialReceived, auto_select: false });
+                state.googleInitialised = true;
+            }
             renderGoogleButton();
         }
 
         function renderGoogleButton() {
-            if (state.account || !window.google?.accounts?.id) return;
+            if (state.account || state.restoring || state.signingIn || state.signingOut || state.logoutFailed || !state.googleInitialised || !window.google?.accounts?.id) return;
             const width = Math.min(260, Math.floor(ui['google-signin'].getBoundingClientRect().width) || 260);
             ui['google-signin'].replaceChildren();
             window.google.accounts.id.renderButton(ui['google-signin'], { theme: 'outline', size: 'large', type: 'standard', shape: 'rectangular', text: 'signin_with', width });
@@ -239,7 +344,8 @@
             const fileVersion = state.fileVersion;
             if (!file) { controls(); showFile(); return; }
             try {
-                if (!file.size || file.size > (state.config.maxPdfBytes || 2097152)) throw new Error('PDF_TOO_LARGE');
+                if (!file.size) throw new Error('INVALID_PDF');
+                if (file.size > uploadLimit()) throw new Error('PDF_TOO_LARGE');
                 if (!isPdfHeader(new Uint8Array(await file.slice(0, 1024).arrayBuffer()))) throw new Error('INVALID_PDF');
                 if (fileVersion !== state.fileVersion || !state.account) return;
                 state.file = file;
@@ -261,6 +367,60 @@
                 reader.onerror = () => reject(new Error('INVALID_PDF'));
                 reader.readAsDataURL(file);
             });
+        }
+
+        async function uploadLargePdf(file, selection, job, signal) {
+            const { PDFDocument, EncryptedPDFError } = await import('./vendor/pdf-lib-1.17.1.esm.min.js')
+                .catch(() => { throw new Error('UPLOAD_UNAVAILABLE'); });
+            let pageCount;
+            try {
+                const document = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: false, throwOnInvalidObject: true });
+                pageCount = document.getPageCount();
+            } catch (error) {
+                throw new Error(error instanceof EncryptedPDFError || error?.message === new EncryptedPDFError().message ? 'PDF_ENCRYPTED' : 'INVALID_PDF');
+            }
+            signal.throwIfAborted();
+            if (!pageCount) throw new Error('INVALID_PDF');
+            if (pageCount > state.config.maxDocumentPages) throw new Error('PDF_TOO_MANY_PAGES');
+            if (selection.start > pageCount) throw new Error('INVALID_RANGE');
+            status('uploading');
+            const grant = await api('upload', {
+                method: 'POST', signal, body: JSON.stringify({ action: 'start', sizeBytes: file.size, pageCount })
+            });
+            if (typeof grant.fileToken !== 'string' || typeof grant.uploadUrl !== 'string') throw new Error('UPLOAD_UNAVAILABLE');
+            job.fileToken = grant.fileToken;
+            const uploadUrl = new URL(grant.uploadUrl);
+            if (uploadUrl.origin !== 'https://generativelanguage.googleapis.com' || uploadUrl.pathname !== '/upload/v1beta/files' ||
+                uploadUrl.username || uploadUrl.password || uploadUrl.hash) throw new Error('UPLOAD_UNAVAILABLE');
+            let result;
+            try {
+                result = await fetch(uploadUrl, {
+                    method: 'POST', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer',
+                    headers: { 'Content-Type': 'application/pdf', 'X-Goog-Upload-Command': 'upload, finalize', 'X-Goog-Upload-Offset': '0' },
+                    body: file, signal: AbortSignal.any([signal, AbortSignal.timeout(90_000)])
+                });
+            } catch (error) {
+                signal.throwIfAborted();
+                // Google may finish the upload without making its response accessible through CORS.
+                if (error.name !== 'TypeError') throw new Error('UPLOAD_UNAVAILABLE');
+            }
+            if (result && !result.ok) throw new Error('UPLOAD_UNAVAILABLE');
+            const body = JSON.stringify({ action: 'status', fileToken: job.fileToken });
+            for (let attempt = 0; attempt < 12; attempt++) {
+                signal.throwIfAborted();
+                if ((await api('upload', { method: 'POST', signal, body })).ready === true) {
+                    return { fileToken: job.fileToken };
+                }
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            throw new Error('UPLOAD_NOT_READY');
+        }
+
+        function clearUploadedPdf(job) {
+            if (!job?.fileToken) return;
+            const body = JSON.stringify({ action: 'delete', fileToken: job.fileToken });
+            job.fileToken = null;
+            void api('upload', { method: 'POST', keepalive: true, body }).catch(() => {});
         }
 
         function appendInline(parent, text) {
@@ -342,8 +502,10 @@
         async function translate(event) {
             event.preventDefault();
             if (state.running) return;
+            const version = state.authVersion;
+            let job;
             try {
-                if (!state.token || !state.account) throw new Error('AUTH_REQUIRED');
+                if (!state.account) throw new Error('AUTH_REQUIRED');
                 if (state.account.exp * 1000 <= Date.now() + 5000) { signOut(true); return; }
                 if (!state.config?.translationReady) throw new Error('SERVICE_NOT_CONFIGURED');
                 if (!state.file) throw new Error('PDF_REQUIRED');
@@ -356,7 +518,9 @@
                 state.chunks = [];
                 state.resultTarget = target;
                 state.controller = new AbortController();
-                state.job = { start: selection.start, total: null, lastCompleted: selection.start - 1 };
+                const signal = state.controller.signal;
+                job = { start: selection.start, total: null, lastCompleted: selection.start - 1 };
+                state.job = job;
                 ui['translation-output'].replaceChildren();
                 ui['result-summary'].textContent = '';
                 ui['result-section'].hidden = false;
@@ -365,15 +529,17 @@
                 ui['progress-label'].textContent = '';
                 controls();
                 status('reading');
-                const pdfBase64 = await fileToBase64(state.file);
+                const documentInput = state.file.size > inlineLimit()
+                    ? await uploadLargePdf(state.file, selection, job, signal)
+                    : { pdfBase64: await fileToBase64(state.file) };
                 let next = selection.start;
                 let finalPage = selection.end;
                 while (next <= finalPage) {
-                    if (state.controller.signal.aborted) throw new DOMException('Stopped', 'AbortError');
+                    signal.throwIfAborted();
                     const endPage = Math.min(next + selection.batchSize - 1, finalPage);
                     status('translating', { start: next, end: endPage });
-                    const result = await api('translate', { method: 'POST', signal: state.controller.signal, body: JSON.stringify({ pdfBase64, targetLanguage: target, startPage: next, endPage }) });
-                    if (!state.account) return;
+                    const result = await api('translate', { method: 'POST', signal, body: JSON.stringify({ ...documentInput, targetLanguage: target, startPage: next, endPage }) });
+                    if (version !== state.authVersion) return;
                     if (!Number.isInteger(result.pageCount) || !Number.isInteger(result.endPage) || result.endPage < next || result.endPage > endPage || typeof result.text !== 'string' || !result.text.trim()) throw new Error('SERVER_ERROR');
                     finalPage = Math.min(selection.end, result.pageCount);
                     state.job.total = finalPage - selection.start + 1;
@@ -387,15 +553,18 @@
                     renderSummary();
                 }
             } catch (error) {
-                if (!state.account) return;
+                if (version !== state.authVersion || !state.account) return;
                 if (error.httpStatus === 401 || error.httpStatus === 403) { signOut(); status(error.message, {}, 'error'); return; }
                 if (error.name === 'AbortError') status('cancelled', {}, 'warning');
                 else status(error.name === 'TimeoutError' ? 'GEMINI_TIMEOUT' : error.message, {}, 'error');
             } finally {
-                state.running = false;
-                state.controller = null;
-                renderSummary();
-                controls();
+                clearUploadedPdf(job);
+                if (version === state.authVersion) {
+                    state.running = false;
+                    state.controller = null;
+                    renderSummary();
+                    controls();
+                }
             }
         }
 
@@ -424,26 +593,47 @@
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         });
         ui['print-result'].addEventListener('click', () => { status('printHelp'); window.print(); });
-        window.addEventListener('pagehide', () => { state.controller?.abort(); if (state.fileUrl) URL.revokeObjectURL(state.fileUrl); state.token = null; });
-        window.addEventListener('pageshow', event => { if (event.persisted) signOut(); });
+        window.addEventListener('pagehide', () => {
+            if (state.signingOut) { state.logoutFailed = true; state.auth = 'signOutFailed'; }
+            clearSession();
+            controls();
+            showFile();
+        });
+        window.addEventListener('pageshow', event => {
+            if (!event.persisted) return;
+            if (state.logoutFailed || state.signingOut) { controls(); return; }
+            if (state.config) void restoreSession();
+            else void initialiseAvailability();
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && state.account?.exp * 1000 <= Date.now()) void signOut(true);
+        });
         let resizeTimer;
         window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderGoogleButton, 150); });
         new MutationObserver(refreshLocale).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
         controls();
         showFile();
-        (async () => {
+        async function initialiseAvailability() {
+            const version = state.authVersion;
             try {
                 const base = window.PDF_TRANSLATOR_CONFIG?.apiBaseUrl;
                 if (!base) throw new Error('SERVICE_NOT_CONFIGURED');
                 state.base = normaliseApiBase(base);
                 state.config = await api('config');
+                if (version !== state.authVersion) return;
+                showFile();
                 if (!state.config.signInReady || !state.config.googleClientId) throw new Error('SERVICE_NOT_CONFIGURED');
-                await loadGoogle();
-                state.service = 'ready';
-            } catch { state.service = 'unavailable'; }
+                await restoreSession();
+            } catch {
+                if (version !== state.authVersion) return;
+                state.restoring = false;
+                state.auth = 'SERVICE_NOT_CONFIGURED';
+                state.service = 'unavailable';
+            }
             controls();
-        })();
+        }
+        void initialiseAvailability();
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialise, { once: true });

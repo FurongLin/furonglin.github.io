@@ -9,12 +9,18 @@ import { readJson } from '../lib/http.js';
 import { request, TestResponse, TEST_ENV, testAuthenticator, translationBody, verifiedPayload } from './helpers.js';
 
 test('public config exposes readiness and limits without private identity or API key', async () => {
-    for (const [env, signInReady, translationReady] of [[{}, false, false], [{ ...TEST_ENV, GEMINI_FREE_TIER_API_KEY: '' }, true, false], [TEST_ENV, true, true]]) {
+    for (const [env, signInReady, translationReady] of [
+        [{}, false, false],
+        [{ ...TEST_ENV, GEMINI_FREE_TIER_API_KEY: '' }, true, false],
+        [TEST_ENV, true, true],
+        [{ ...TEST_ENV, OWNER_SESSION_SECRET: 'synthetic-session-secret-for-tests-only-123456789' }, true, true]
+    ]) {
         const res = new TestResponse();
         await createConfigHandler({ env })(request({ method: 'GET' }), res);
         assert.equal(res.statusCode, 200);
         assert.deepEqual(res.json(), {
             googleClientId: env.GOOGLE_CLIENT_ID || '', maxPdfBytes: 2_097_152,
+            maxUploadBytes: env.OWNER_SESSION_SECRET ? 10_485_760 : 2_097_152,
             maxPagesPerBatch: 5, maxDocumentPages: 100, signInReady, translationReady
         });
         assert.equal(res.body.includes('owner@example.test'), false);
@@ -46,7 +52,10 @@ test('CORS allows only exact configured origins, handles preflight and does not 
 
 test('session uses the real auth helper and returns only verified profile fields', async () => {
     const calls = [];
-    const handler = createSessionHandler({ env: TEST_ENV, authenticateRequest: testAuthenticator(verifiedPayload(), calls) });
+    const handler = createSessionHandler({
+        env: { ...TEST_ENV, OWNER_SESSION_SECRET: 'synthetic-session-secret-for-tests-only-123456789' },
+        authenticateRequest: testAuthenticator(verifiedPayload(), calls)
+    });
     const res = new TestResponse();
     await handler(request(), res);
     assert.equal(res.statusCode, 200);

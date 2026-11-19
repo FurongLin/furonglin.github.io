@@ -2,6 +2,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { normalizeEmail } from './config.js';
 import { ApiError } from './errors.js';
 import { header } from './http.js';
+import { authenticateOwnerSession } from './session.js';
 
 const googleClient = new OAuth2Client();
 
@@ -14,6 +15,9 @@ export function createAuthenticator({
             throw new ApiError(503, 'SIGN_IN_NOT_CONFIGURED', 'Private Google sign-in is not configured.');
         }
         const authorization = header(req, 'authorization');
+        if (!authorization && (req.headers?.authorization === undefined || typeof req.headers.authorization === 'string')) {
+            return authenticateOwnerSession(req, config, { now });
+        }
         const match = /^Bearer ([A-Za-z0-9._~-]+)$/i.exec(authorization);
         if (!match || match[1].length > 16_384) {
             throw new ApiError(401, 'AUTH_REQUIRED', 'Sign in with the allowed Google account.');

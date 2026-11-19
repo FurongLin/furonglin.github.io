@@ -82,7 +82,7 @@
                             <span class="upload-action" data-zh="或点击选择文件">or select a file</span>
                             <span class="upload-hint" data-zh="一次翻译一个文档">One document at a time</span>
                         </label>
-                        <p class="field-help selected-file" id="selected-file" data-zh="仅限 PDF，最大 2 MiB。">PDF only, up to 2 MiB.</p>
+                        <p class="field-help selected-file" id="selected-file" data-zh="仅限 PDF，最大 10 MiB。">PDF only, up to 10 MiB.</p>
 
                         <div class="translation-options">
                             <div class="form-field">
@@ -133,7 +133,7 @@
 
                         <label class="consent-label" for="privacy-consent">
                             <input id="privacy-consent" name="privacy-consent" type="checkbox" required />
-                            <span data-zh="我同意将此 PDF 发送给 Google Gemini 处理。本站不会持久保存 PDF 或译文。">I agree to send this PDF to Google Gemini for processing. This site does not persistently store PDFs or translations.</span>
+                            <span data-zh="我同意将此 PDF 发送给 Google Gemini。超过 2 MiB 的文件由 Gemini 临时保存，处理结束后本站会请求删除。">I agree to send this PDF to Google Gemini. Gemini temporarily stores files over 2 MiB, and this site requests deletion when processing ends.</span>
                         </label>
                         <p class="field-help" data-zh="翻译使用 Gemini 免费层项目的额度。达到限额后，请稍后再试。">Translation uses the quota of your Gemini Free Tier project. If you reach a limit, try again later.</p>
                     <div class="form-actions">
@@ -174,7 +174,7 @@
                 </div>
             </section>
             <footer class="private-workspace-footer">
-                <p data-zh="文档由 Google Gemini 处理，本站不持久保存 PDF 或译文。">Documents are processed by Google Gemini. This site does not persistently store PDFs or translations.</p>
+                <p data-zh="本站不持久保存 PDF 或译文。Gemini 的临时上传文件会在 48 小时后自动删除。">This site does not persistently store PDFs or translations. Gemini automatically deletes temporary uploads after 48 hours.</p>
             </footer>
         </div>
     </main>

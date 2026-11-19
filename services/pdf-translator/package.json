@@ -8,7 +8,7 @@
     },
     "scripts": {
         "dev": "node --env-file-if-exists=.env dev-server.js",
-        "test": "node --test --test-isolation=none test/api.test.js test/auth.test.js test/gemini.test.js test/pdf.test.js"
+        "test": "node --test --test-isolation=none test/api.test.js test/auth.test.js test/gemini.test.js test/pdf.test.js test/upload.test.js"
     },
     "dependencies": {
         "google-auth-library": "11.3.4",

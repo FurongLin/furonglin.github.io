@@ -14,13 +14,16 @@ const SYSTEM_INSTRUCTION = [
 ].join(' ');
 
 export function buildGeminiRequest(document) {
+    const pdf = document.fileUri
+        ? { fileData: { mimeType: 'application/pdf', fileUri: document.fileUri } }
+        : { inlineData: { mimeType: 'application/pdf', data: document.pdfBase64 } };
     return {
         systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
         contents: [{
             role: 'user',
             parts: [
                 {
-                    inlineData: { mimeType: 'application/pdf', data: document.pdfBase64 },
+                    ...pdf,
                     documentMetadata: {
                         startPage: document.startPage,
                         endPage: document.endPage,

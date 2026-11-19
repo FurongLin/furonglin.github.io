@@ -2,11 +2,13 @@ import { createServer } from 'node:http';
 import configHandler from './api/config.js';
 import sessionHandler from './api/session.js';
 import translateHandler from './api/translate.js';
+import uploadHandler from './api/upload.js';
 
 const handlers = new Map([
     ['/api/config', configHandler],
     ['/api/session', sessionHandler],
-    ['/api/translate', translateHandler]
+    ['/api/translate', translateHandler],
+    ['/api/upload', uploadHandler]
 ]);
 
 createServer((req, res) => {

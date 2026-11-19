@@ -3,12 +3,14 @@ import { getConfig } from '../lib/config.js';
 import { ApiError, sendError, sendJson } from '../lib/errors.js';
 import { translateWithGemini } from '../lib/gemini.js';
 import { prepareRequest, readJson } from '../lib/http.js';
-import { validateTranslation } from '../lib/pdf.js';
+import { validateTranslation, validateUploadedSelection } from '../lib/pdf.js';
+import { getUploadedFile, readUploadToken } from '../lib/uploads.js';
 
 export function createTranslateHandler({
     env = process.env,
     authenticateRequest = authenticate,
-    translate = translateWithGemini
+    translate = translateWithGemini,
+    fetchUploadedFile = getUploadedFile
 } = {}) {
     return async function handler(req, res) {
         const controller = new AbortController();
@@ -26,12 +28,21 @@ export function createTranslateHandler({
             if (!prepareRequest(req, res, config, 'POST')) {
                 return;
             }
-            await authenticateRequest(req, config);
+            const owner = await authenticateRequest(req, config);
             if (!config.translationReady) {
                 throw new ApiError(503, 'TRANSLATION_NOT_CONFIGURED', 'The private translation service is not configured.');
             }
             const body = await readJson(req);
-            const document = await validateTranslation(body);
+            let document;
+            if (Object.hasOwn(body, 'fileToken')) {
+                const upload = readUploadToken(body.fileToken, owner.email, config);
+                const selection = validateUploadedSelection(body, upload.pageCount);
+                const fileUri = await fetchUploadedFile(upload, config, undefined, controller.signal);
+                if (!fileUri) throw new ApiError(409, 'UPLOAD_NOT_READY', 'Wait for the PDF upload and try again.');
+                document = { ...selection, fileUri };
+            } else {
+                document = await validateTranslation(body);
+            }
             if (controller.signal.aborted || req.aborted || res.destroyed) {
                 return;
             }
